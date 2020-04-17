@@ -7,7 +7,32 @@ def scraper(url, resp):
 
 def extract_next_links(url, resp):
     # Implementation requred.
-    return list()
+
+    webRespong=resp
+    print(webRespong)
+    testList={1,2,3,4}
+
+    return list(testList)
+def tokenize(TextFilePath):
+
+    regularPattern= '[A-Za-z0-9]{2,}'
+
+    try:
+        file = open(TextFilePath, 'r',encoding='utf-8')
+        tokenList=[]
+        lines=file.readlines()
+        #for each line in the file, we find the appropriate regex
+        for line in lines:
+            line=line.lower()
+            wordlist=re.findall(regularPattern,line)
+            tokenList.extend(wordlist)
+        return tokenList
+        file.close()
+
+    except:
+        print('File does not exist or wrong file type used')
+        file.close()
+        sys.exit()
 
 def is_valid(url):
     try:
