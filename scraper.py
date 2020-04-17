@@ -1,5 +1,6 @@
 import re
 from urllib.parse import urlparse
+from bs4 import BeautifulSoup
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -7,12 +8,12 @@ def scraper(url, resp):
 
 def extract_next_links(url, resp):
     # Implementation requred.
+    webResponse=BeautifulSoup(resp.raw_response.content,'html.parser')
+    tags=webResponse.find_all('a')
+    for tag in tags:
+        print(tag.get('href'))
 
-    webRespong=resp
-    print(webRespong)
-    testList={1,2,3,4}
-
-    return list(testList)
+    return tag
 def tokenize(TextFilePath):
 
     regularPattern= '[A-Za-z0-9]{2,}'
