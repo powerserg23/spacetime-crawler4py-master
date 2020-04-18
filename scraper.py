@@ -43,8 +43,8 @@ def tokenize(TextFilePath):
         for line in lines:
             line = line.lower()
             wordlist = re.findall(regularPattern, line)
-            temp = wordlist
-            for word in temp:
+            templist = wordlist
+            for word in templist:
                 if word in stopWords:
                     wordlist.remove(word)
             tokenList.extend(wordlist)
