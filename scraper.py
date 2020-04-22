@@ -40,7 +40,6 @@ def tokenize(TextFilePath):
 
 def is_valid(url):
     try:
-        print(url)
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
