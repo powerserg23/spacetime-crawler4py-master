@@ -3,8 +3,8 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
 DBDictionary = dict()
-MaxTokens = int
-MaxURL = str
+MaxTokens = 0
+MaxURL = ""
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -19,10 +19,12 @@ def extract_next_links(url, resp):
 
     # tokenizes the web contents and checks if the page has more tokens then the max. If it is greater the max number
     # is updated and the MaxURL is changed to the new url
+    global MaxTokens
+    global MaxURL
     urlTokens = tokenize(webResponse)
-    if len(urlTokens) > scraper.MaxTokens:
-        scraper.MaxTokens = len(urlTokens)
-        scraper.MaxURL = url
+    if len(urlTokens) > MaxTokens:
+        MaxTokens = len(urlTokens)
+        MaxURL = url
 
     # takes the list of tokens created and adds them to the DBDictionary
     updateDBD(urlTokens)
@@ -65,6 +67,7 @@ def tokenize(resp):
 
 def updateDBD(Tokens):
     # Take list of tokens updates the DBDictionary to include these tokens
+    global DBDictionary
     for word in Tokens:
         DBDictionary[word] = DBDictionary.get(word, 0) + 1
 
