@@ -13,13 +13,15 @@ def scraper(url, resp):
 
 def extract_next_links(url, resp):
     # Implementation required.
+    if resp.status is not 200:
+        return []
     webResponse = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
     # tokenizes the web contents and checks if the page has more tokens then the max. If it is greater the max number
     # is updated and the MaxURL is changed to the new url
     urlTokens = tokenize(webResponse)
-    if urlTokens.__len__() > scraper.MaxTokens:
-        scraper.MaxTokens = urlTokens.__len__()
+    if len(urlTokens) > scraper.MaxTokens:
+        scraper.MaxTokens = len(urlTokens)
         scraper.MaxURL = url
 
     # takes the list of tokens created and adds them to the DBDictionary
@@ -50,19 +52,15 @@ def tokenize(resp):
                  "we're", "we've", "were", "weren't", "what", "what's", "when", "when's", "where", "where's", "which",
                  "while", "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you", "you'd",
                  "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"}
-    try:
-        tokenList = []
-        wordlist = re.findall(regularPattern, resp)
-        print(wordlist)
-        templist = wordlist
-        for word in templist:
-            if word in stopWords:
-                wordlist.remove(word)
-        tokenList.extend(wordlist)
-        return tokenList
+    tokenList = []
+    wordlist = re.findall(regularPattern, resp.get_text())
+    templist = wordlist
+    for word in templist:
+        if word in stopWords:
+            wordlist.remove(word)
+    tokenList.extend(wordlist)
+    return tokenList
 
-    except:
-        print('File does not exist or wrong file type used')
 
 
 def updateDBD(Tokens):
