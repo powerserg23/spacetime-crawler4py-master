@@ -22,10 +22,11 @@ def extract_next_links(url, resp):
 
 
 def tokenize(TextFilePath):
+    # Tokenizes a text file looking for an sequence of 2+ alphanumerics while ignoring stop words
     regularPattern = '[A-Za-z0-9]{2,}'
     stopWords = {"a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't",
                  "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by",
-                 "can't","cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't",
+                 "can't", "cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't",
                  "down", "during", "each", "few", "for", "from", "further", "had", "hadn't", "has", "hasn't", "have",
                  "haven't", "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him",
                  "himself", "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't",
@@ -59,13 +60,27 @@ def tokenize(TextFilePath):
         file.close()
         sys.exit()
 
+
 def computeWordFrequencies(Tokens):
     # Take list of tokens and return a dictionary with tokens and the number of occurrences of each token
+    # also updates the DBDictionary with the tokens found on this page
     output = dict()
     for word in Tokens:
         output[word] = output.get(word, 0) + 1
+        DBDictionary[word] = DBDictionary.get(word, 0) + 1
     return output
 
+
+def Top50(wordDict):
+    # takes the DBDictionary and prints the 50 most common words in dictionary
+    sortedWords = sorted(wordDict.items(), key=lambda x: 0 - x[1])
+    n = 50;
+    for word, val in sortedWords:
+        if n > 0:
+            print("<" + word + "> <" + str(wordDict[word]) + ">")
+            n -= 1
+        else:
+            break
 
 def is_valid(url):
     try:
