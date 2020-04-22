@@ -2,6 +2,9 @@ import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
+DBDictionary = dict()
+MaxTokens = int
+MaxURL = str
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -9,7 +12,7 @@ def scraper(url, resp):
 
 
 def extract_next_links(url, resp):
-    # Implementation requred.
+    # Implementation required.
     webResponse = BeautifulSoup(resp.raw_response.content, 'html.parser')
     tags = webResponse.find_all('a')
     for tag in tags:
@@ -55,6 +58,13 @@ def tokenize(TextFilePath):
         print('File does not exist or wrong file type used')
         file.close()
         sys.exit()
+
+def computeWordFrequencies(Tokens):
+    # Take list of tokens and return a dictionary with tokens and the number of occurrences of each token
+    output = dict()
+    for word in Tokens:
+        output[word] = output.get(word, 0) + 1
+    return output
 
 
 def is_valid(url):
