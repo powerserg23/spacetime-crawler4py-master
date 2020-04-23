@@ -1,4 +1,10 @@
 import re
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+from nltk.tokenize import RegexpTokenizer
+
+
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
@@ -7,28 +13,29 @@ MaxTokens = 0
 MaxURL = ""
 
 def scraper(url, resp):
-    links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    if resp.status!=200:
+        return[]
+    else:
+        links = extract_next_links(url, resp)
+        return [link for link in links if is_valid(link)]
 
 
 def extract_next_links(url, resp):
     # Implementation required.
-    if resp.status is not 200:
-        return []
     webResponse = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
     # tokenizes the web contents and checks if the page has more tokens then the max. If it is greater the max number
     # is updated and the MaxURL is changed to the new url
     global MaxTokens
     global MaxURL
-    urlTokens = tokenize(webResponse)
+    urlTokens=tokenize(webResponse.getText())
+
     if len(urlTokens) > MaxTokens:
         MaxTokens = len(urlTokens)
         MaxURL = url
 
     # takes the list of tokens created and adds them to the DBDictionary
-    updateDBD(urlTokens)
-
+    #updateDBD(urlTokens)
     tags = webResponse.find_all('a')
     urlList = []
     for tag in tags:
@@ -38,7 +45,9 @@ def extract_next_links(url, resp):
 
 def tokenize(resp):
     # Tokenizes a text file looking for an sequence of 2+ alphanumerics while ignoring stop words
-    regularPattern = '[A-Za-z0-9]{2,}'
+    '''
+
+     regularPattern = '[A-Za-z0-9]{2,}'
     stopWords = {"a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't",
                  "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by",
                  "can't", "cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't",
@@ -57,15 +66,23 @@ def tokenize(resp):
     tokenList = []
     wordlist = re.findall(regularPattern, resp.get_text())
     templist = wordlist
-    for word in templist:
-        if word in stopWords:
-            wordlist.remove(word)
-    tokenList.extend(wordlist)
-    return tokenList
+    '''
+    urlTokens = []
+    myTokenizer = RegexpTokenizer('\w+')
+    tempTokens = myTokenizer.tokenize(resp)
+    sw = stopwords.words('english')
+    # checks if tokens are stop words, if not then it adds it to the list of tokens
+    for tokens in tempTokens:
+        checkToken = tokens.lower()
+        if checkToken not in sw:
+            urlTokens.append(checkToken)
+        else:
+            continue
+    return urlTokens
 
 
 
-def updateDBD(Tokens):
+"""def updateDBD(Tokens):
     # Take list of tokens updates the DBDictionary to include these tokens
     global DBDictionary
     for word in Tokens:
@@ -82,13 +99,19 @@ def Top50(wordDict):
             n -= 1
         else:
             break
+"""
+def print50(wordList):
+    #prints the frequencies of the list of words that it is passed
+    freqList=nltk.FreqDist(wordList)
+    [print(word[0]) for word in freqList.most_common(50)]
 
 def is_valid(url):
     try:
         parsed = urlparse(url)
-        if parsed.scheme not in set(["http", "https"]):
+        if parsed.scheme not in set(["http", "https"]) or url.find('?')!=-1:
             return False
-        return not re.match(
+        return ".ics.uci.edu" in parsed.hostname\
+            and not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
@@ -96,7 +119,8 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
+            + r"|docs|docx|css|js|)$", parsed.path.lower())
 
     except TypeError:
         print("TypeError for ", parsed)
