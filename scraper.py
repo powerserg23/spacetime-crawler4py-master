@@ -32,7 +32,7 @@ def get_features(s):
 
 def simhash(content):
     global prevsimHash
-    if Simhash(prevsimHash).distance(Simhash(content))<=3:
+    if Simhash(prevsimHash).distance(Simhash(content)) <= 3:
         return False
     else:
         return True
@@ -105,14 +105,38 @@ def updateDBD(Tokens):
 def print50(wordList):
     #prints the frequencies of the list of words that it is passed
     freqList=nltk.FreqDist(wordList)
-    [print(word[0]) for word in freqList.most_common(50)]
+    finalList = []
+
+    for word in freqList.most_common(50):
+        finalList.append(word[0])
+    return finalList
+    # [print(word[0]) for word in freqList.most_common(50)]
 
 
-def updateSubdomains(TokenList):
+def updateSubdomains(UniqueUrl):
+    #takes the set containing all unique urls and builds a dictionary that hold subdomain as key
+    # and number of page as value
     global Subdomains
-    for url in TokenList:
+    for url in UniqueUrl:
         parsed = urlparse(url)
         Subdomains[parsed.hostname] = Subdomains.get(parsed.hostname, 0) + 1
+
+
+def getOutput():
+    # returns a string with the answer to all four problems TO DO make it output to a textfile
+    global UniqueUrl, MaxURL, MaxTokens
+    output = "1. Number of unique pages found: " + UniqueUrl.__len__() + "\n"
+    output += "2. Longest page in terms of number of words is " + MaxURL + " with " + MaxTokens + " words total\n"
+    output += "3. 50 most common words in order of most frequent to least frequent are "
+    commonWords = print50(TokenList)
+    for word in commonWords:
+        output += word + ", "
+    output = output.slice(0, -2)
+    output += "\n4. Subdomains found: \n"
+    updateSubdomains(UniqueUrl)
+    for key, value in Subdomains:
+        output += "   subdomain name: " + key + ", pages found: " + value + "\n"
+
 
 
 def is_valid(url):
@@ -137,7 +161,7 @@ def is_valid(url):
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
             + r"|docs|docx|css|js|blog|page|calendar|archive)$", parsed.path.lower()) and not \
-                re.search(r"(blog|page|calendar|archive|)", parsed.path.lower()):
+                re.search(r"(blog|page|calendar|archive)", parsed.path.lower()):
             return True
         else:
             return False
