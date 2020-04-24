@@ -136,6 +136,12 @@ def getOutput():
     updateSubdomains(UniqueUrl)
     for key, value in Subdomains:
         output += "   subdomain name: " + key + ", pages found: " + value + "\n"
+    try:
+        f = open("output.txt", "x")
+    except:
+        f = open("output.txt", "w")
+    finally:
+        f.write(output)
 
 
 
