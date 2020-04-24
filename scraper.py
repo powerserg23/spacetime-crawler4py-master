@@ -91,7 +91,7 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]) or (url.find("?") != -1):
             return False
-        return '.ics.uci.edu' in parsed.netloc\
+        if '.ics.uci.edu' in parsed.netloc\
             and not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -101,7 +101,10 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
-            + r"|docs|docx|css|js|)$", parsed.path.lower())
+            + r"|docs|docx|css|js|)$", parsed.path.lower()):
+            return True
+        else:
+            return False
 
     except TypeError:
         print("TypeError for ", parsed)
