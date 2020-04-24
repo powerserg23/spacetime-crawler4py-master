@@ -11,6 +11,7 @@ class Worker(Thread):
         self.logger = get_logger(f"Worker-{worker_id}", "Worker")
         self.config = config
         self.frontier = frontier
+        self.prev_url = ""
         super().__init__(daemon=True)
         
     def run(self):
@@ -19,6 +20,11 @@ class Worker(Thread):
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 break
+            if self.prev_url == "":
+                self.prev_url = tbd_url
+            else:
+                if self.prev_url.split('/')[2] == tbd_url.split('/')[2]:
+                    time.sleep(0.5)
             resp = download(tbd_url, self.config, self.logger)
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
