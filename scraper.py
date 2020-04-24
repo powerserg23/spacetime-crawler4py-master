@@ -108,6 +108,11 @@ def print50(wordList):
     [print(word[0]) for word in freqList.most_common(50)]
 
 
+def updateSubdomains(TokenList):
+    global Subdomains
+    for url in TokenList:
+        parsed = urlparse(url)
+        Subdomains[parsed.hostname] = Subdomains.get(parsed.hostname, 0) + 1
 
 
 def is_valid(url):
