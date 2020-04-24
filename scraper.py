@@ -8,7 +8,7 @@ from nltk.tokenize import RegexpTokenizer
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
-DBDictionary = dict()
+TokenList = []
 MaxTokens = 0
 MaxURL = ""
 
@@ -39,7 +39,17 @@ def extract_next_links(url, resp):
     tags = webResponse.find_all('a')
     urlList = []
     for tag in tags:
-        urlList.append(tag.get('href'))
+        possibleInd=''
+        tempURL=tag.get('href')
+        if tempURL==None:
+            continue
+        possibleInd=tempURL.find('#')
+        if possibleInd!=-1:
+            depURL=tempURL[:possibleInd]
+            urlList.append(depURL)
+        else:
+            urlList.append(tempURL)
+
     return urlList
 
 
@@ -78,17 +88,17 @@ def tokenize(resp):
             urlTokens.append(checkToken)
         else:
             continue
+    updateDBD(urlTokens)
     return urlTokens
 
 
 
-"""def updateDBD(Tokens):
+def updateDBD(Tokens):
     # Take list of tokens updates the DBDictionary to include these tokens
-    global DBDictionary
-    for word in Tokens:
-        DBDictionary[word] = DBDictionary.get(word, 0) + 1
+    global TokenList
+    TokenList.append(Tokens)
 
-
+""""
 def Top50(wordDict):
     # takes the DBDictionary and prints the 50 most common words in dictionary
     sortedWords = sorted(wordDict.items(), key=lambda x: 0 - x[1])
@@ -108,10 +118,9 @@ def print50(wordList):
 def is_valid(url):
     try:
         parsed = urlparse(url)
-        if parsed.scheme not in set(["http", "https"]):
+        if parsed.scheme not in set(["http", "https"]) or (url.find("?") != -1):
             return False
-        return ".ics.uci.edu/",".cs.uci.edu",".informatics.uci.edu/",".stat.uci.edu/",\
-               "today.uci.edu/department/information_computer_sciences/" in parsed.hostname\
+        return ".ics.uci.edu" in parsed.hostname\
             and not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
