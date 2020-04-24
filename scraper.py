@@ -12,12 +12,12 @@ TokenList = []
 MaxTokens = 0
 MaxURL = ""
 UniqueUrl=set()
+prevsimHash=''
 
 def scraper(url, resp):
+    global prevsimHash
     if resp.status!=200:
         return[]
-#TODO use simhash to compare similarity of pages
-
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
@@ -29,9 +29,16 @@ def get_features(s):
     s = re.sub(r'[^\w]+', '', s)
     return [s[i:i + width] for i in range(max(len(s) - width + 1, 1))]
 
+def simhash(content):
+    global prevsimHash
+    if Simhash(prevsimHash).distance(Simhash(content))<=3:
+        return False
+    else:
+        return True
 
 def extract_next_links(url, resp):
     # Implementation required.
+
     webResponse = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
     # tokenizes the web contents and checks if the page has more tokens then the max. If it is greater the max number
@@ -51,17 +58,23 @@ def extract_next_links(url, resp):
     urlList = []
     for tag in tags:
         tempURL=tag.get('href')
+        #if the url is emtpy
         if tempURL==None:
             continue
+        #finds the fragment tag in url and takes it off
         possibleInd=tempURL.find('#')
         if possibleInd!=-1:
-            depURL=tempURL[:possibleInd]
+            tempURL=tempURL[:possibleInd]
+            urlList.append(tempURL)
+            if tempURL not in UniqueUrl:
+                UniqueUrl.add(tempURL)
         else:
             urlList.append(tempURL)
             if tempURL not in UniqueUrl:
                 UniqueUrl.add(tempURL)
 
     return urlList
+
 
 
 def tokenize(resp):
@@ -93,6 +106,8 @@ def print50(wordList):
     [print(word[0]) for word in freqList.most_common(50)]
 
 def is_valid(url):
+    global prevsimHash
+
     try:
         parsed = urlparse(url)
         if parsed.hostname==None or parsed.netloc==None:
@@ -102,7 +117,7 @@ def is_valid(url):
         if parsed.scheme not in set(["http", "https"]) or (url.find("?") != -1) or (url.find("&") != -1):
             return False
 
-        return any(dom in parsed.hostname for dom in validDomains) \
+        if any(dom in parsed.hostname for dom in validDomains) \
             and not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -112,7 +127,19 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
-            + r"|docs|docx|css|js|)$", parsed.path.lower())
+            + r"|docs|docx|css|js|blog|page|calendar|archive)$", parsed.path.lower()):
+            print(prevsimHash)
+            simBool = True
+            if prevsimHash != '':
+                simBool = simhash(url)
+            else:
+                prevsimHash = url
+            if simBool:
+                prevsimHash = url;
+                return True
+            else:
+                return False
+
 
     except TypeError:
         print("TypeError for ", parsed)
