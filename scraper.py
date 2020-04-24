@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 TokenList = []
 MaxTokens = 0
 MaxURL = ""
+UniqueUrl=set()
 
 def scraper(url, resp):
     if resp.status!=200:
@@ -28,6 +29,7 @@ def extract_next_links(url, resp):
     # is updated and the MaxURL is changed to the new url
     global MaxTokens
     global MaxURL
+    global UniqueUrl
     urlTokens=tokenize(webResponse.getText())
 
     if len(urlTokens) > MaxTokens:
@@ -45,38 +47,19 @@ def extract_next_links(url, resp):
             continue
         possibleInd=tempURL.find('#')
         if possibleInd!=-1:
+            urlList.append(tempURL)
             depURL=tempURL[:possibleInd]
-            urlList.append(depURL)
+            if depURL not in UniqueUrl:
+                UniqueUrl.add(depURL)
         else:
             urlList.append(tempURL)
+            UniqueUrl.add(tempURL)
 
     return urlList
 
 
 def tokenize(resp):
     # Tokenizes a text file looking for an sequence of 2+ alphanumerics while ignoring stop words
-    '''
-
-     regularPattern = '[A-Za-z0-9]{2,}'
-    stopWords = {"a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't",
-                 "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by",
-                 "can't", "cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't",
-                 "down", "during", "each", "few", "for", "from", "further", "had", "hadn't", "has", "hasn't", "have",
-                 "haven't", "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him",
-                 "himself", "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't",
-                 "it", "it's", "its", "itself", "let's", "me", "more", "most", "mustn't", "my", "myself", "no", "nor",
-                 "not", "of", "off", "on", "once", "only", "or", "other", "ought", "our", "ours", "ourselves", "out",
-                 "over", "own", "same", "shan't", "she", "she'd", "she'll", "she's", "should", "shouldn't", "so",
-                 "some", "such", "than", "that", "that's", "the", "their", "theirs", "them", "themselves", "then",
-                 "there", "there's", "these", "they", "they'd", "they'll", "they're", "they've", "this", "those",
-                 "through", "to", "too", "under", "until", "up", "very", "was", "wasn't", "we", "we'd", "we'll",
-                 "we're", "we've", "were", "weren't", "what", "what's", "when", "when's", "where", "where's", "which",
-                 "while", "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you", "you'd",
-                 "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"}
-    tokenList = []
-    wordlist = re.findall(regularPattern, resp.get_text())
-    templist = wordlist
-    '''
     urlTokens = []
     myTokenizer = RegexpTokenizer('\w+')
     tempTokens = myTokenizer.tokenize(resp)
@@ -98,18 +81,6 @@ def updateDBD(Tokens):
     global TokenList
     TokenList.append(Tokens)
 
-""""
-def Top50(wordDict):
-    # takes the DBDictionary and prints the 50 most common words in dictionary
-    sortedWords = sorted(wordDict.items(), key=lambda x: 0 - x[1])
-    n = 50;
-    for word, val in sortedWords:
-        if n > 0:
-            print("<" + word + "> <" + str(wordDict[word]) + ">")
-            n -= 1
-        else:
-            break
-"""
 def print50(wordList):
     #prints the frequencies of the list of words that it is passed
     freqList=nltk.FreqDist(wordList)
@@ -120,7 +91,7 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]) or (url.find("?") != -1):
             return False
-        return ".ics.uci.edu" in parsed.hostname\
+        return '.ics.uci.edu' in parsed.netloc\
             and not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
