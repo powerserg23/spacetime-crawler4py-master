@@ -116,7 +116,6 @@ def is_valid(url):
                "today.uci.edu/department/information_computer_sciences"]
         if parsed.scheme not in set(["http", "https"]) or (url.find("?") != -1) or (url.find("&") != -1):
             return False
-
         if any(dom in parsed.hostname for dom in validDomains) \
             and not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
@@ -127,18 +126,11 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
-            + r"|docs|docx|css|js|blog|page|calendar|archive)$", parsed.path.lower()):
-            print(prevsimHash)
-            simBool = True
-            if prevsimHash != '':
-                simBool = simhash(url)
-            else:
-                prevsimHash = url
-            if simBool:
-                prevsimHash = url;
-                return True
-            else:
-                return False
+            + r"|docs|docx|css|js|blog|page|calendar|archive)$", parsed.path.lower()) and not \
+                re.search(r"(blog|page|calendar|archive|)",parsed.path.lower()):
+            return True
+        else:
+            return False
 
 
     except TypeError:
