@@ -12,6 +12,7 @@ TokenList = []
 MaxTokens = 0
 MaxURL = ""
 UniqueUrl=set()
+Subdomains = dict()
 prevsimHash=''
 
 def scraper(url, resp):
@@ -100,10 +101,19 @@ def updateDBD(Tokens):
     global TokenList
     TokenList.append(Tokens)
 
+
 def print50(wordList):
     #prints the frequencies of the list of words that it is passed
     freqList=nltk.FreqDist(wordList)
     [print(word[0]) for word in freqList.most_common(50)]
+
+
+def updateSubdomains(TokenList):
+    global Subdomains
+    for url in TokenList:
+        parsed = urlparse(url)
+        Subdomains[parsed.hostname] = Subdomains.get(parsed.hostname, 0) + 1
+
 
 def is_valid(url):
     global prevsimHash
@@ -127,7 +137,7 @@ def is_valid(url):
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
             + r"|docs|docx|css|js|blog|page|calendar|archive)$", parsed.path.lower()) and not \
-                re.search(r"(blog|page|calendar|archive|)",parsed.path.lower()):
+                re.search(r"(blog|page|calendar|archive|)", parsed.path.lower()):
             return True
         else:
             return False
