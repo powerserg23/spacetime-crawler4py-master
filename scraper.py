@@ -86,13 +86,14 @@ def extract_next_links(url, resp):
 def tokenize(resp):
     # Tokenizes a text file looking for an sequence of 2+ alphanumerics while ignoring stop words
     urlTokens = []
+    exclusionWords = ['day', 'month', 'year']
     myTokenizer = RegexpTokenizer('\w+')
     tempTokens = myTokenizer.tokenize(resp)
     sw = stopwords.words('english')
     # checks if tokens are stop words, if not then it adds it to the list of tokens
     for tokens in tempTokens:
         checkToken = tokens.lower()
-        if checkToken not in sw:
+        if checkToken not in sw and checkToken not in exclusionWords:
             urlTokens.append(checkToken)
         else:
             continue
