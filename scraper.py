@@ -67,12 +67,11 @@ def extract_next_links(url, resp):
         if possibleInd!=-1:
             tempURL=tempURL[:possibleInd]
             urlList.append(tempURL)
-            if tempURL not in UniqueUrl:
-                UniqueUrl.add(tempURL)
+            UniqueUrl.add(tempURL)
+                # note: i think you can remove the if statement on lines 70 and 75 because sets dont have repeats
         else:
             urlList.append(tempURL)
-            if tempURL not in UniqueUrl:
-                UniqueUrl.add(tempURL)
+            UniqueUrl.add(tempURL)
 
     return urlList
 
@@ -142,6 +141,7 @@ def getOutput():
         f = open("output.txt", "w")
     finally:
         f.write(output)
+        f.close()
 
 
 
