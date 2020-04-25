@@ -164,8 +164,7 @@ def is_valid(url):
         if parsed.scheme not in set(["http", "https"]) or (url.find("?") != -1) or (url.find("&") != -1):
             return False
         if any(dom in parsed.hostname for dom in validDomains) \
-            and not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
+            and not re.search(r"(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
@@ -173,8 +172,7 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
-            + r"|docs|docx|css|js|blog|page|calendar|archive)$", parsed.path.lower()) and not \
-                re.search(r"(blog|page|calendar|archive)", parsed.path.lower()):
+            + r"|docs|docx|css|js|blog|page|calendar|archive)", parsed.path.lower()):
             return True
         else:
             return False
