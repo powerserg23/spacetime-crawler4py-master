@@ -14,12 +14,19 @@ MaxURL = ""
 UniqueUrl=set()
 Subdomains = dict()
 prevsimHash=''
+updateOutput = 250
 
 def scraper(url, resp):
     global prevsimHash
+    global updateOutput
     if resp.status!=200:
         return[]
     links = extract_next_links(url, resp)
+    if updateOutput == 1:
+        getOutput()
+        updateOutput = 250
+    else:
+        updateOutput -=1
     return [link for link in links if is_valid(link)]
 
 #this get_features is being used from https://leons.im/posts/a-python-implementation-of-simhash-algorithm/
