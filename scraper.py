@@ -19,7 +19,7 @@ updateOutput = 250
 def scraper(url, resp):
     global prevsimHash
     global updateOutput
-    if resp.status!=200:
+    if resp.status!=200 or resp.raw_response.content==None:
         return[]
     links = extract_next_links(url, resp)
     if updateOutput == 1:
@@ -29,7 +29,7 @@ def scraper(url, resp):
         updateOutput -=1
     return [link for link in links if is_valid(link)]
 
-#this get_features is being used from https://leons.im/posts/a-python-implementation-of-simhash-algorithm/
+"""this get_features is being used from https://leons.im/posts/a-python-implementation-of-simhash-algorithm/
 #to get the raw text from a html file to be able to compute the simhash function
 def get_features(s):
     width = 3
@@ -42,7 +42,7 @@ def simhash(content):
     if Simhash(prevsimHash).distance(Simhash(content)) <= 3:
         return False
     else:
-        return True
+        return True"""
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -73,7 +73,6 @@ def extract_next_links(url, resp):
         possibleInd=tempURL.find('#')
         if possibleInd!=-1:
             tempURL=tempURL[:possibleInd]
-            urlList.append(tempURL)
             UniqueUrl.add(tempURL)
                 # note: i think you can remove the if statement on lines 70 and 75 because sets dont have repeats
         else:
