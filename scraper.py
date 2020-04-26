@@ -131,13 +131,12 @@ def updateSubdomains(UniqueUrl):
 def getOutput():
     # returns a string with the answer to all four problems TO DO make it output to a textfile
     global UniqueUrl, MaxURL, MaxTokens
-    output = "1. Number of unique pages found: " + str(UniqueUrl.__len__()) + "\n"
-    output += "2. Longest page in terms of number of words is " + MaxURL + " with " + str(MaxTokens) + " words total\n"
-    output += "3. 50 most common words in order of most frequent to least frequent are "
+    output = "1. Number of unique pages found: " + str(UniqueUrl.__len__()) + "\n\n"
+    output += "2. Longest page in terms of number of words is " + MaxURL + " with " + str(MaxTokens)+" words total\n\n"
+    output += "3. 50 most common words in order of most frequent to least frequent are \n   "
     commonWords = print50(TokenList)
     for word in commonWords:
-        output += word + ", "
-    output = output[: -2]
+        output += word + "\n  "
     output += "\n4. Subdomains found: \n"
     updateSubdomains(UniqueUrl)
     for key, value in Subdomains.items():
