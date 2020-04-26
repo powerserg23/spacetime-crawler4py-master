@@ -66,9 +66,6 @@ def extract_next_links(url, resp):
     urlList = []
     for tag in tags:
         tempURL=tag.get('href')
-        #if the url is emtpy
-        if tempURL==None:
-            continue
         #finds the fragment tag in url and takes it off
         possibleInd=tempURL.find('#')
         if possibleInd!=-1:
@@ -76,7 +73,11 @@ def extract_next_links(url, resp):
             UniqueUrl.add(tempURL)
                 # note: i think you can remove the if statement on lines 70 and 75 because sets dont have repeats
         else:
-            urlList.append(tempURL)
+            # if the url is emtpy
+            if tempURL == None or tempURL in UniqueUrl:
+                pass
+            else:
+                urlList.append(tempURL)
             UniqueUrl.add(tempURL)
 
     return urlList
