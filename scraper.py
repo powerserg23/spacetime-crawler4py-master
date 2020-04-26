@@ -65,19 +65,23 @@ def extract_next_links(url, resp):
     tags = webResponse.find_all('a')
     urlList = []
     for tag in tags:
-        tempURL=tag.get('href')
-        #finds the fragment tag in url and takes it off
-        possibleInd=tempURL.find('#')
-        if possibleInd!=-1:
-            tempURL=tempURL[:possibleInd]
+        tempURL = tag.get('href')
+        # if the url is emtpy
+        if tempURL == None:
+            continue
+        # finds the fragment tag in url and takes it off
+        possibleInd = tempURL.find('#')
+        if possibleInd != -1:
+            tempURL = tempURL[:possibleInd]
+            if tempURL in UniqueUrl:
+                continue
             UniqueUrl.add(tempURL)
-                # note: i think you can remove the if statement on lines 70 and 75 because sets dont have repeats
+            urlList.append(tempURL)
+            # note: i think you can remove the if statement on lines 70 and 75 because sets dont have repeats
         else:
-            # if the url is emtpy
-            if tempURL == None or tempURL in UniqueUrl:
-                pass
-            else:
-                urlList.append(tempURL)
+            if tempURL in UniqueUrl:
+                continue
+            urlList.append(tempURL)
             UniqueUrl.add(tempURL)
 
     return urlList
