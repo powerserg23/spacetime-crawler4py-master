@@ -12,6 +12,7 @@ class Worker(Thread):
         self.config = config
         self.frontier = frontier
         self.prev_url = ""
+        self.counter = 0
         super().__init__(daemon=True)
         
     def run(self):
@@ -30,6 +31,8 @@ class Worker(Thread):
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
                 f"using cache {self.config.cache_server}.")
+            self.counter += 1
+            print(str(self.counter))
             scraped_urls = scraper(tbd_url, resp)
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
