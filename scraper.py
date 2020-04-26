@@ -86,14 +86,13 @@ def extract_next_links(url, resp):
 def tokenize(resp):
     # Tokenizes a text file looking for an sequence of 2+ alphanumerics while ignoring stop words
     urlTokens = []
-    exclusionWords = ['day', 'month', 'year']
     myTokenizer = RegexpTokenizer('\w+')
     tempTokens = myTokenizer.tokenize(resp)
     sw = stopwords.words('english')
     # checks if tokens are stop words, if not then it adds it to the list of tokens
     for tokens in tempTokens:
         checkToken = tokens.lower()
-        if checkToken not in sw and checkToken not in exclusionWords:
+        if checkToken not in sw:
             urlTokens.append(checkToken)
         else:
             continue
@@ -131,16 +130,17 @@ def updateSubdomains(UniqueUrl):
 def getOutput():
     # returns a string with the answer to all four problems TO DO make it output to a textfile
     global UniqueUrl, MaxURL, MaxTokens
-    output = "1. Number of unique pages found: " + str(UniqueUrl.__len__()) + "\n\n"
-    output += "2. Longest page in terms of number of words is " + MaxURL + " with " + str(MaxTokens)+" words total\n\n"
-    output += "3. 50 most common words in order of most frequent to least frequent are \n   "
+    output = "1. Number of unique pages found: " + UniqueUrl.__len__() + "\n"
+    output += "2. Longest page in terms of number of words is " + MaxURL + " with " + MaxTokens + " words total\n"
+    output += "3. 50 most common words in order of most frequent to least frequent are "
     commonWords = print50(TokenList)
     for word in commonWords:
-        output += word + "\n  "
+        output += word + ", "
+    output = output.slice(0, -2)
     output += "\n4. Subdomains found: \n"
     updateSubdomains(UniqueUrl)
-    for key, value in Subdomains.items():
-        output += "   subdomain name: " + key + ", pages found: " + str(value) + "\n"
+    for key, value in Subdomains:
+        output += "   subdomain name: " + key + ", pages found: " + value + "\n"
     try:
         f = open("output.txt", "x")
     except:
@@ -163,18 +163,17 @@ def is_valid(url):
         if parsed.scheme not in set(["http", "https"]) or (url.find("?") != -1) or (url.find("&") != -1):
             return False
         if any(dom in parsed.hostname for dom in validDomains) \
-            and not re.search(r"(css|js|bmp|gif|jpe?g|ico"
+            and not re.match(
+            r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx|ppsx"
-            + r"|january|february|march|april|may|june|july"
-            + r"|august|september|october|november|december"
-            + r"|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec"
-            + r"|docs|docx|css|js|blog|page|calendar|archive)", parsed.path.lower()):
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
+            + r"|docs|docx|css|js|blog|page|calendar|archive)$", parsed.path.lower()) and not \
+                re.search(r"(blog|page|calendar|archive)", parsed.path.lower()):
             return True
         else:
             return False
