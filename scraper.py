@@ -140,7 +140,7 @@ def getOutput():
     output = output[: -2]
     output += "\n4. Subdomains found: \n"
     updateSubdomains(UniqueUrl)
-    for key, value in Subdomains:
+    for key, value in Subdomains.items():
         output += "   subdomain name: " + key + ", pages found: " + str(value) + "\n"
     try:
         f = open("output.txt", "x")
