@@ -5,6 +5,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from simhash import Simhash, SimhashIndex
 from utils.response import Response
+from collections import Counter
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
@@ -14,7 +15,7 @@ MaxURL = ""
 UniqueUrl=set()
 Subdomains = dict()
 prevsimHash=''
-updateOutput = 250
+updateOutput = 1500
 
 def scraper(url, resp):
     global prevsimHash
@@ -24,25 +25,10 @@ def scraper(url, resp):
     links = extract_next_links(url, resp)
     if updateOutput == 1:
         getOutput()
-        updateOutput = 250
+        updateOutput = 1500
     else:
         updateOutput -=1
     return [link for link in links if is_valid(link)]
-
-"""this get_features is being used from https://leons.im/posts/a-python-implementation-of-simhash-algorithm/
-#to get the raw text from a html file to be able to compute the simhash function
-def get_features(s):
-    width = 3
-    s = s.lower()
-    s = re.sub(r'[^\w]+', '', s)
-    return [s[i:i + width] for i in range(max(len(s) - width + 1, 1))]
-
-def simhash(content):
-    global prevsimHash
-    if Simhash(prevsimHash).distance(Simhash(content)) <= 3:
-        return False
-    else:
-        return True"""
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -53,7 +39,6 @@ def extract_next_links(url, resp):
     # is updated and the MaxURL is changed to the new url
     global MaxTokens
     global MaxURL
-    global UniqueUrl
     urlTokens=tokenize(webResponse.getText())
 
     if len(urlTokens) > MaxTokens:
@@ -73,16 +58,10 @@ def extract_next_links(url, resp):
         possibleInd = tempURL.find('#')
         if possibleInd != -1:
             tempURL = tempURL[:possibleInd]
-            if tempURL in UniqueUrl:
-                continue
-            UniqueUrl.add(tempURL)
             urlList.append(tempURL)
             # note: i think you can remove the if statement on lines 70 and 75 because sets dont have repeats
         else:
-            if tempURL in UniqueUrl:
-                continue
             urlList.append(tempURL)
-            UniqueUrl.add(tempURL)
 
     return urlList
 
@@ -91,13 +70,18 @@ def extract_next_links(url, resp):
 def tokenize(resp):
     # Tokenizes a text file looking for an sequence of 2+ alphanumerics while ignoring stop words
     urlTokens = []
-    myTokenizer = RegexpTokenizer('\w+')
+
+    exclusionWords = {'january','jan','feb','february','march','mar','april','apr','may','june','jun','jul','july'\
+                      ,'aug','august','september','sept','aug','august','october','oct','november','nov','dec','december','monday',\
+                      'mon','tues','tuesday','wednesday','wed','thursday','thurs','friday','fri','sat','saturday','sun','sunday'}
+
+    myTokenizer = RegexpTokenizer(r'\w+{2,}')
     tempTokens = myTokenizer.tokenize(resp)
     sw = stopwords.words('english')
     # checks if tokens are stop words, if not then it adds it to the list of tokens
     for tokens in tempTokens:
         checkToken = tokens.lower()
-        if checkToken not in sw:
+        if checkToken not in sw and checkToken not in exclusionWords and not re.search(r"[0-9]",checkToken):
             urlTokens.append(checkToken)
         else:
             continue
@@ -105,28 +89,28 @@ def tokenize(resp):
     return urlTokens
 
 
-
 def updateDBD(Tokens):
     # Take list of tokens updates the DBDictionary to include these tokens
     global TokenList
-    TokenList.append(Tokens)
+    TokenList.extend(Tokens)
 
 
 def print50(wordList):
     #prints the frequencies of the list of words that it is passed
-    freqList=nltk.FreqDist(wordList)
+    freqList=Counter(wordList)
     finalList = []
 
     for word in freqList.most_common(50):
         finalList.append(word[0])
     return finalList
-    # [print(word[0]) for word in freqList.most_common(50)]
+
 
 
 def updateSubdomains(UniqueUrl):
     #takes the set containing all unique urls and builds a dictionary that hold subdomain as key
     # and number of page as value
     global Subdomains
+    Subdomains.clear()
     for url in UniqueUrl:
         parsed = urlparse(url)
         Subdomains[parsed.hostname] = Subdomains.get(parsed.hostname, 0) + 1
@@ -135,17 +119,17 @@ def updateSubdomains(UniqueUrl):
 def getOutput():
     # returns a string with the answer to all four problems TO DO make it output to a textfile
     global UniqueUrl, MaxURL, MaxTokens
-    output = "1. Number of unique pages found: " + UniqueUrl.__len__() + "\n"
-    output += "2. Longest page in terms of number of words is " + MaxURL + " with " + MaxTokens + " words total\n"
-    output += "3. 50 most common words in order of most frequent to least frequent are "
+    output = "1. Number of unique pages found: " + str(len(UniqueUrl)) + "\n\n"
+    output += "2. Longest page in terms of number of words is " + str(MaxURL) + " with " + str(
+        MaxTokens) + " words total\n\n"
+    output += "3. 50 most common words in order of most frequent to least frequent are \n   "
     commonWords = print50(TokenList)
     for word in commonWords:
-        output += word + ", "
-    output = output.slice(0, -2)
+        output += word + "\n  "
     output += "\n4. Subdomains found: \n"
     updateSubdomains(UniqueUrl)
-    for key, value in Subdomains:
-        output += "   subdomain name: " + key + ", pages found: " + value + "\n"
+    for key, value in Subdomains.items():
+        output += "   subdomain name: " + str(key) + ", pages found: " + str(value) + "\n"
     try:
         f = open("output.txt", "x")
     except:
@@ -158,6 +142,8 @@ def getOutput():
 
 def is_valid(url):
     global prevsimHash
+    global UniqueUrl
+
 
     try:
         parsed = urlparse(url)
@@ -168,18 +154,22 @@ def is_valid(url):
         if parsed.scheme not in set(["http", "https"]) or (url.find("?") != -1) or (url.find("&") != -1):
             return False
         if any(dom in parsed.hostname for dom in validDomains) \
-            and not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
-            + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1|php|z"
-            + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx"
-            + r"|docs|docx|css|js|blog|page|calendar|archive)$", parsed.path.lower()) and not \
-                re.search(r"(blog|page|calendar|archive)", parsed.path.lower()):
-            return True
+            and not re.search(r"(css|js|bmp|gif|jpe?g|ico"
+                              + r"|png|tiff?|mid|mp2|mp3|mp4"
+                              + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
+                              + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
+                              + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
+                              + r"|epub|dll|cnf|tgz|sha1|php|z"
+                              + r"|thmx|mso|arff|rtf|jar|csv"
+                              + r"|rm|smil|wmv|swf|wma|zip|rar|gz|ppt|pptx|ppsx"
+                              + r"|january|february|march|april|may|june|july"
+                              + r"|august|september|october|november|december"
+                              + r"|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec"
+                              + r"|docs|docx|css|js|blog|page|calendar|archive|events|event)", parsed.path.lower()):
+            if url in UniqueUrl:
+                return False
+            else:
+                return True
         else:
             return False
 
