@@ -9,6 +9,7 @@ from collections import Counter
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
+
 TokenList = []
 MaxTokens = 0
 MaxURL = ""
@@ -33,7 +34,7 @@ def scraper(url, resp):
 def extract_next_links(url, resp):
     # Implementation required.
 
-    webResponse = BeautifulSoup(resp.raw_response.content, 'html.parser')
+    webResponse = BeautifulSoup(resp.raw_response.content, 'html.parser') #make sure to change back to resp.raw_response.content
 
     # tokenizes the web contents and checks if the page has more tokens then the max. If it is greater the max number
     # is updated and the MaxURL is changed to the new url
@@ -75,13 +76,13 @@ def tokenize(resp):
                       ,'aug','august','september','sept','aug','august','october','oct','november','nov','dec','december','monday',\
                       'mon','tues','tuesday','wednesday','wed','thursday','thurs','friday','fri','sat','saturday','sun','sunday'}
 
-    myTokenizer = RegexpTokenizer(r'\w+{2,}')
+    myTokenizer = RegexpTokenizer('[a-z]{2,}')
     tempTokens = myTokenizer.tokenize(resp)
     sw = stopwords.words('english')
     # checks if tokens are stop words, if not then it adds it to the list of tokens
     for tokens in tempTokens:
         checkToken = tokens.lower()
-        if checkToken not in sw and checkToken not in exclusionWords and not re.search(r"[0-9]",checkToken):
+        if checkToken not in sw and checkToken not in exclusionWords:
             urlTokens.append(checkToken)
         else:
             continue
@@ -113,7 +114,8 @@ def updateSubdomains(UniqueUrl):
     Subdomains.clear()
     for url in UniqueUrl:
         parsed = urlparse(url)
-        Subdomains[parsed.hostname] = Subdomains.get(parsed.hostname, 0) + 1
+        if 'ics.uci.edu' in parsed.netloc.lower():
+            Subdomains[parsed.hostname] = Subdomains.get(parsed.hostname, 0) + 1
 
 
 def getOutput():
@@ -165,10 +167,12 @@ def is_valid(url):
                               + r"|january|february|march|april|may|june|july"
                               + r"|august|september|october|november|december"
                               + r"|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec"
-                              + r"|docs|docx|css|js|blog|page|calendar|archive|events|event)", parsed.path.lower()):
+                              + r"|docs|docx|css|js|blog|page|calendar|archive|events|event|date)", parsed.path.lower())\
+            and not re.match(r'\/(19|20)[0-9]{2}/|\/(19|20)[0-9]{2}$|\/(19|20)[0-9]{2}-[0-9]{1,2}|\/[0-9]{1,2}-(19|20)[0-9]{2}|[0-9]{1,2}-[0-9]{1,2}-(19|20)[0-9]{2}',parsed.path.lower()):
             if url in UniqueUrl:
                 return False
             else:
+                UniqueUrl.add(url)
                 return True
         else:
             return False
