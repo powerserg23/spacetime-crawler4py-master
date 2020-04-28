@@ -9,26 +9,34 @@ from collections import Counter
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
-
+# list containing every token found on every pages tokenized
 TokenList = []
+# Maxtokens is the highest number of tokens found on a url, and MaxURL is the url which has the highest number of tokens
 MaxTokens = 0
 MaxURL = ""
+# this is a set containing every URL that we have checked, not including url fragments
 UniqueUrl=set()
+# a dictionary containing the subdomain as a key and the amount of pages in that subdomain as the value
 Subdomains = dict()
 prevsimHash=''
+# a counter that increments down to 1 before being reset, used in updating the output file containing our report.
 updateOutput = 1500
 
 def scraper(url, resp):
     global prevsimHash
     global updateOutput
+    # if the response status isn't 200 or the page is empty, we don't check it
     if resp.status!=200 or resp.raw_response.content==None:
         return[]
     links = extract_next_links(url, resp)
+
+    # updateOutput acts as a counter and, after every 1500 pages checked, updates our output file answers to the report
     if updateOutput == 1:
         getOutput()
         updateOutput = 1500
     else:
         updateOutput -=1
+    # checks the list of urls found on a page using the is_valid function to decide whether or not to return each url
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
@@ -42,6 +50,7 @@ def extract_next_links(url, resp):
     global MaxURL
     urlTokens=tokenize(webResponse.getText())
 
+    # compares current webpage's token count to the highest count to see if we have a new highest num of tokens
     if len(urlTokens) > MaxTokens:
         MaxTokens = len(urlTokens)
         MaxURL = url
@@ -52,15 +61,14 @@ def extract_next_links(url, resp):
     urlList = []
     for tag in tags:
         tempURL = tag.get('href')
-        # if the url is emtpy
+        # if the url is emtpy don't check it
         if tempURL == None:
             continue
-        # finds the fragment tag in url and takes it off
+        # if it finds the fragment tag in url it takes it off, the it appends the url to our list of urls to search
         possibleInd = tempURL.find('#')
         if possibleInd != -1:
             tempURL = tempURL[:possibleInd]
             urlList.append(tempURL)
-            # note: i think you can remove the if statement on lines 70 and 75 because sets dont have repeats
         else:
             urlList.append(tempURL)
 
@@ -71,21 +79,26 @@ def extract_next_links(url, resp):
 def tokenize(resp):
     # Tokenizes a text file looking for an sequence of 2+ alphanumerics while ignoring stop words
     urlTokens = []
-
+    # exclusionWords is a list of words that we dont want to include in out list of tokens. These include months and
+    # days, which appear in disproportionatly high numbers
     exclusionWords = {'january','jan','feb','february','march','mar','april','apr','may','june','jun','jul','july'\
                       ,'aug','august','september','sept','aug','august','october','oct','november','nov','dec','december','monday',\
                       'mon','tues','tuesday','wednesday','wed','thursday','thurs','friday','fri','sat','saturday','sun','sunday'}
 
+    # tokenizes with the pattern '[a-z]{2,}' which finds two letters or more. We excluded numbers because there were
+    # no instances where we found numbers to have important meaning
     myTokenizer = RegexpTokenizer('[a-z]{2,}')
     tempTokens = myTokenizer.tokenize(resp)
     sw = stopwords.words('english')
-    # checks if tokens are stop words, if not then it adds it to the list of tokens
+
+    # this loop checks if tokens are stop words or words we want to exclude, if not then it adds it to the token list
     for tokens in tempTokens:
         checkToken = tokens.lower()
         if checkToken not in sw and checkToken not in exclusionWords:
             urlTokens.append(checkToken)
         else:
             continue
+    # updataDBD adds all tokens found on this page to our master list containing all tokens found on all pages
     updateDBD(urlTokens)
     return urlTokens
 
