@@ -18,12 +18,10 @@ MaxURL = ""
 UniqueUrl=set()
 # a dictionary containing the subdomain as a key and the amount of pages in that subdomain as the value
 Subdomains = dict()
-prevsimHash=''
 # a counter that increments down to 1 before being reset, used in updating the output file containing our report.
 updateOutput = 1500
 
 def scraper(url, resp):
-    global prevsimHash
     global updateOutput
     # if the response status isn't 200 or the page is empty, we don't check it
     if resp.status!=200 or resp.raw_response.content==None:
@@ -156,7 +154,6 @@ def getOutput():
 
 
 def is_valid(url):
-    global prevsimHash
     global UniqueUrl
 
 
